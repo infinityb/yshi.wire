@@ -20,24 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from .string import StringSerDes, string
-from .varint import VarIntSerDes, varint
 
-from .discriminated import DiscriminatedSerDes, DiscriminatedSerDesBuilder
-from .list import ListSerDes
-from .tuple import TupleSerDes, TupleSerDesBuilder
-from .object_table import ObjectTableSerDes
+from .varint import varint
 
 
-__all__ = [
-    "StringSerDes",
-    "string",
-    "VarIntSerDes",
-    "varint",
-    "DiscriminatedSerDes",
-    "DiscriminatedSerDesBuilder",
-    "ListSerDes",
-    "TupleSerDes",
-    "TupleSerDesBuilder",
-    "ObjectTableSerDes"
-]
+class ObjectTableSerDes(object):
+    def __init__(self, objects):
+        self._objects = objects
+
+    def serialize(self, obj):
+        for idx, cur_obj in enumerate(self._objects):
+            if cur_obj is obj:
+                return varint.serialize(idx)
+        raise Exception()
+
+    def buf_parse(self, buf, idx):
+        object_id, idx = varint.buf_parse(buf, idx)
+        return self._objects[object_id], idx
+
+    def parse(self, buf):
+        data, idx = self.buf_parse(buf, 0)
+        assert len(buf) == idx
+        return data
