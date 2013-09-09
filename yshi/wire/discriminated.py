@@ -34,7 +34,7 @@ class DiscriminatedSerDes(object):
                 return varint.serialize(idx) + serdes.serialize(thing)
             except:
                 pass
-        raise Exception("Couldn't serialize %r" % thing)
+        raise Exception("Couldn't serialize %r" % (thing, ))
 
     def buf_parse(self, buf, idx):
         option, idx = varint.buf_parse(buf, idx)
