@@ -38,7 +38,8 @@ class DiscriminatedSerDes(object):
 
     def buf_parse(self, buf, idx):
         option, idx = varint.buf_parse(buf, idx)
-        assert 0 <= option < len(self._serdes_list)
+	if not 0 <= option < len(self._serdes_list):
+            raise ValueError('Invalid data')
         return self._serdes_list[option].buf_parse(buf, idx)
 
     def parse(self, buf):
