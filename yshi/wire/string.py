@@ -22,32 +22,38 @@
 
 
 from .varint import varint
+from .exc import WireValueError, WireTypeError
 
 
-def serialize_string(str_):
-    return varint.serialize(len(str_)) + str_
+def dumps_string(str_):
+    try:
+        return varint.dumps(len(str_)) + str_
+    except TypeError as e:
+        raise WireTypeError(e)
+    except ValueError as e:
+        raise WireValueError(e)
 
 
-def buf_parse_string(buf, idx):
-    byte_count, idx = varint.buf_parse(buf, idx)
+def buf_loads_string(buf, idx):
+    byte_count, idx = varint.buf_loads(buf, idx)
     return buf[idx:idx + byte_count], idx + byte_count
 
 
-def parse_string(buf):
-    data, offset = buf_parse_string(buf, 0)
+def loads_string(buf):
+    data, offset = buf_loads_string(buf, 0)
     assert len(buf) == offset
     return data
 
 
 class StringSerDes(object):
-    def serialize(self, num):
-        return serialize_string(num)
+    def dumps(self, num):
+        return dumps_string(num)
 
-    def buf_parse(self, buf, idx):
-        return buf_parse_string(buf, idx)
+    def buf_loads(self, buf, idx):
+        return buf_loads_string(buf, idx)
 
-    def parse(self, buf):
-        return parse_string(buf)
+    def loads(self, buf):
+        return loads_string(buf)
 
 
 string = StringSerDes()

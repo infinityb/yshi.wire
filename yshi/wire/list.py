@@ -20,30 +20,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-
 from .varint import varint
+from .exc import WireTypeError
 
 
 class ListSerDes(object):
     def __init__(self, item_serdes):
         self._item_serdes = item_serdes
 
-    def serialize(self, list_):
+    def dumps(self, list_):
+        try:
+            list_len = len(list_)
+        except TypeError as e:
+            raise WireTypeError(e)
         buf = b''
-        buf += varint.serialize(len(list_))
+        buf += varint.dumps(list_len)
         for obj in list_:
-            buf += self._item_serdes.serialize(obj)
+            buf += self._item_serdes.dumps(obj)
         return buf
 
-    def buf_parse(self, buf, idx):
-        array_len, idx = varint.buf_parse(buf, idx)
+    def buf_loads(self, buf, idx):
+        array_len, idx = varint.buf_loads(buf, idx)
         out = list()
         for _ in xrange(array_len):
-            item, idx = self._item_serdes.buf_parse(buf, idx)
+            item, idx = self._item_serdes.buf_loads(buf, idx)
             out.append(item)
         return out, idx
 
-    def parse(self, buf):
-        data, idx = self.buf_parse(buf, 0)
+    def loads(self, buf):
+        data, idx = self.buf_loads(buf, 0)
         assert len(buf) == idx
         return data

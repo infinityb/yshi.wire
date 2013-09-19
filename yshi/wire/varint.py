@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import numbers
+from .exc import WireTypeError
 
 _SELF_CHECKS = [True]
 
@@ -49,7 +51,9 @@ def _varint_read_byte(byte):
     return (ord(byte) >> 1), bool(ord(byte) & 1)
 
 
-def serialize_varint(num):
+def dumps_varint(num):
+    if not isinstance(num, numbers.Integral):
+        raise WireTypeError("num must be integral")
     num_tmp = int(num)
     things = list()
     while True:
@@ -60,11 +64,11 @@ def serialize_varint(num):
     things[0] = things[0] | 1
     obuf = b''.join(map(chr, reversed(things)))
     if _SELF_CHECKS[0]:
-        _assertEquals(_do_check(parse_varint, obuf), num, "serialize_varint")
+        _assertEquals(_do_check(loads_varint, obuf), num, "dumps_varint")
     return obuf
 
 
-def buf_parse_varint(buf, idx):
+def buf_loads_varint(buf, idx):
     acc = 0
     sidx = idx
     while True:
@@ -76,27 +80,27 @@ def buf_parse_varint(buf, idx):
             break
     if _SELF_CHECKS[0]:
         _assertEquals(
-            _do_check(serialize_varint, acc), buf[sidx:idx],
-            "buf_parse_varint"
+            _do_check(dumps_varint, acc), buf[sidx:idx],
+            "buf_loads_varint"
         )
     return acc, idx
 
 
-def parse_varint(buf):
-    data, offset = buf_parse_varint(buf, 0)
+def loads_varint(buf):
+    data, offset = buf_loads_varint(buf, 0)
     assert len(buf) == offset
     return data
 
 
 class VarIntSerDes(object):
-    def serialize(self, num):
-        return serialize_varint(num)
+    def dumps(self, num):
+        return dumps_varint(num)
 
-    def buf_parse(self, buf, idx):
-        return buf_parse_varint(buf, idx)
+    def buf_loads(self, buf, idx):
+        return buf_loads_varint(buf, idx)
 
-    def parse(self, buf):
-        return parse_varint(buf)
+    def loads(self, buf):
+        return loads_varint(buf)
 
 
 varint = VarIntSerDes()

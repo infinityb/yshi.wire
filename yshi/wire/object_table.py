@@ -22,23 +22,24 @@
 
 
 from .varint import varint
+from .exc import WireValueError
 
 
 class ObjectTableSerDes(object):
     def __init__(self, objects):
         self._objects = objects
 
-    def serialize(self, obj):
+    def dumps(self, obj):
         for idx, cur_obj in enumerate(self._objects):
             if cur_obj is obj:
-                return varint.serialize(idx)
-        raise Exception()
+                return varint.dumps(idx)
+        raise WireValueError("Unknown value %r" % (obj, ))
 
-    def buf_parse(self, buf, idx):
-        object_id, idx = varint.buf_parse(buf, idx)
+    def buf_loads(self, buf, idx):
+        object_id, idx = varint.buf_loads(buf, idx)
         return self._objects[object_id], idx
 
-    def parse(self, buf):
-        data, idx = self.buf_parse(buf, 0)
+    def loads(self, buf):
+        data, idx = self.buf_loads(buf, 0)
         assert len(buf) == idx
         return data

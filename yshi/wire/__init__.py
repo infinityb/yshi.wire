@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from .exc import WireError, WireValueError, WireTypeError
 from .string import StringSerDes, string
 from .varint import VarIntSerDes, varint
 
@@ -30,6 +31,9 @@ from .object_table import ObjectTableSerDes
 
 
 __all__ = [
+    'WireError',
+    'WireValueError',
+    'WireTypeError',
     "StringSerDes",
     "string",
     "VarIntSerDes",

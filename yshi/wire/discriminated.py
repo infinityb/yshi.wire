@@ -22,28 +22,29 @@
 
 
 from .varint import varint
+from .exc import WireError, WireTypeError
 
 
 class DiscriminatedSerDes(object):
     def __init__(self, serdes_list):
         self._serdes_list = serdes_list
 
-    def serialize(self, thing):
+    def dumps(self, thing):
         for idx, serdes in enumerate(self._serdes_list):
             try:
-                return varint.serialize(idx) + serdes.serialize(thing)
-            except:
+                return varint.dumps(idx) + serdes.dumps(thing)
+            except WireError:
                 pass
-        raise Exception("Couldn't serialize %r" % (thing, ))
+        raise WireTypeError("Couldn't serialize %r" % (thing, ))
 
-    def buf_parse(self, buf, idx):
-        option, idx = varint.buf_parse(buf, idx)
-	if not 0 <= option < len(self._serdes_list):
+    def buf_loads(self, buf, idx):
+        option, idx = varint.buf_loads(buf, idx)
+        if not 0 <= option < len(self._serdes_list):
             raise ValueError('Invalid data')
-        return self._serdes_list[option].buf_parse(buf, idx)
+        return self._serdes_list[option].buf_loads(buf, idx)
 
-    def parse(self, buf):
-        data, idx = self.buf_parse(buf, 0)
+    def loads(self, buf):
+        data, idx = self.buf_loads(buf, 0)
         assert len(buf) == idx
         return data
 

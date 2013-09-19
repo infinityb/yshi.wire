@@ -1,5 +1,5 @@
 """ Setup file.
-""" 
+"""
 import os
 from setuptools import setup, find_packages
 
@@ -9,16 +9,16 @@ with open(os.path.join(here, 'README.rst')) as f:
     README = f.read()
 
 requires = []
-    
+
 setup(
-    namespace_packages = ['yshi'],
+    namespace_packages=['yshi'],
     name='yshi.wire',
-    version=0.1,
+    version=0.2,
     description='yshi.wire',
     long_description=README,
     classifiers=[
         "Programming Language :: Python",
-    ],  
+    ],
     keywords="",
     author='Stacey Ell',
     author_email='stacey.ell@gmail.com',
@@ -27,4 +27,4 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
-)   
+)
