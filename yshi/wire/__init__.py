@@ -19,9 +19,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals
+)
 
 from .exc import WireError, WireValueError, WireTypeError
 from .string import StringSerDes, string
+from .unicode import UnicodeSerDes, unicode_ as unicode
+from .bytea import ByteArraySerDes, bytea
 from .varint import VarIntSerDes, varint
 
 from .discriminated import DiscriminatedSerDes, DiscriminatedSerDesBuilder
@@ -36,6 +44,10 @@ __all__ = [
     'WireTypeError',
     "StringSerDes",
     "string",
+    "UnicodeSerDes",
+    "unicode",
+    "bytea",
+    "ByteArraySerDes",
     "VarIntSerDes",
     "varint",
     "DiscriminatedSerDes",

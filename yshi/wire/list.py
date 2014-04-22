@@ -19,6 +19,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals
+)
 
 from .varint import varint
 from .exc import WireTypeError
@@ -42,7 +48,7 @@ class ListSerDes(object):
     def buf_loads(self, buf, idx):
         array_len, idx = varint.buf_loads(buf, idx)
         out = list()
-        for _ in xrange(array_len):
+        for _ in range(array_len):
             item, idx = self._item_serdes.buf_loads(buf, idx)
             out.append(item)
         return out, idx

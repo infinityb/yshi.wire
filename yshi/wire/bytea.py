@@ -25,27 +25,46 @@ from __future__ import (
     print_function,
     unicode_literals
 )
+import six
+
+# Shims
+if six.PY3:
+    unicode = str
 
 
 from .varint import varint
-from .exc import WireValueError
+from .exc import WireValueError, WireTypeError
 
 
-class ObjectTableSerDes(object):
-    def __init__(self, objects):
-        self._objects = objects
+def dumps_bytea(bytea):
+    try:
+        return varint.dumps(len(bytea)) + bytea
+    except TypeError as e:
+        raise WireTypeError(e)
+    except ValueError as e:
+        raise WireValueError(e)
 
-    def dumps(self, obj):
-        for idx, cur_obj in enumerate(self._objects):
-            if cur_obj is obj:
-                return varint.dumps(idx)
-        raise WireValueError("Unknown value %r" % (obj, ))
+
+def buf_loads_bytea(buf, idx):
+    byte_count, idx = varint.buf_loads(buf, idx)
+    return buf[idx:idx + byte_count], idx + byte_count
+
+
+def loads_bytea(buf):
+    data, offset = buf_loads_bytea(buf, 0)
+    assert len(buf) == offset
+    return data
+
+
+class ByteArraySerDes(object):
+    def dumps(self, num):
+        return dumps_bytea(num)
 
     def buf_loads(self, buf, idx):
-        object_id, idx = varint.buf_loads(buf, idx)
-        return self._objects[object_id], idx
+        return buf_loads_bytea(buf, idx)
 
     def loads(self, buf):
-        data, idx = self.buf_loads(buf, 0)
-        assert len(buf) == idx
-        return data
+        return loads_bytea(buf)
+
+
+bytea = ByteArraySerDes()

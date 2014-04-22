@@ -26,26 +26,46 @@ from __future__ import (
     unicode_literals
 )
 
+import struct
+import numbers
+from .exc import WireTypeError
 
-from .varint import varint
-from .exc import WireValueError
+
+_int128_fmt = '!QQ'
 
 
-class ObjectTableSerDes(object):
-    def __init__(self, objects):
-        self._objects = objects
+def dumps_int128(num):
+    if not isinstance(num, numbers.Integral):
+        raise WireTypeError("num must be integral")
+    if not 0 <= num < 2 ** 128:
+        raise ValueError(
+            'Out of bounds; {} not in 0 <= x < 2 ** 128'.format(num))
+    high = (num >> 64) & (2 ** 64 - 1)
+    low = num & (2 ** 64 - 1)
+    return struct.pack(_int128_fmt, high, low)
 
-    def dumps(self, obj):
-        for idx, cur_obj in enumerate(self._objects):
-            if cur_obj is obj:
-                return varint.dumps(idx)
-        raise WireValueError("Unknown value %r" % (obj, ))
+
+def buf_loads_int128(buf, pos):
+    struct_size = struct.calcsize(_int128_fmt)
+    high, low = struct.unpack('!QQ', buf[pos:pos + struct_size])
+    return (high << 64) + low, pos + struct_size
+
+
+def loads_int128(buf):
+    data, offset = buf_loads_int128(buf, 0)
+    assert len(buf) == offset
+    return data
+
+
+class Int128SerDes(object):
+    def dumps(self, num):
+        return dumps_int128(num)
 
     def buf_loads(self, buf, idx):
-        object_id, idx = varint.buf_loads(buf, idx)
-        return self._objects[object_id], idx
+        return buf_loads_int128(buf, idx)
 
     def loads(self, buf):
-        data, idx = self.buf_loads(buf, 0)
-        assert len(buf) == idx
-        return data
+        return loads_int128(buf)
+
+
+int128 = Int128SerDes()

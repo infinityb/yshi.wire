@@ -19,9 +19,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals
+)
 
 import numbers
+from sys import version_info
+
 from .exc import WireTypeError
+
+if version_info[0] < 3:
+    bytestype = bytearray
+else:
+    bytestype = bytes
+
 
 _SELF_CHECKS = [True]
 
@@ -48,7 +62,7 @@ def _do_check(func, *a, **kw):
 
 def _varint_read_byte(byte):
     """returns (value, is_terminal)"""
-    return (ord(byte) >> 1), bool(ord(byte) & 1)
+    return (byte >> 1), bool(byte & 1)
 
 
 def dumps_varint(num):
@@ -62,7 +76,7 @@ def dumps_varint(num):
         if not num_tmp:
             break
     things[0] = things[0] | 1
-    obuf = b''.join(map(chr, reversed(things)))
+    obuf = bytestype(reversed(things))
     if _SELF_CHECKS[0]:
         _assertEquals(_do_check(loads_varint, obuf), num, "dumps_varint")
     return obuf
@@ -94,10 +108,10 @@ def loads_varint(buf):
 
 class VarIntSerDes(object):
     def dumps(self, num):
-        return dumps_varint(num)
+        return bytes(dumps_varint(num))
 
     def buf_loads(self, buf, idx):
-        return buf_loads_varint(buf, idx)
+        return buf_loads_varint(bytestype(buf), idx)
 
     def loads(self, buf):
         return loads_varint(buf)
